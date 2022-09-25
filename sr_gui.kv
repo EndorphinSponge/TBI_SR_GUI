@@ -73,9 +73,12 @@
                 on_press: root.removeTab()
                 size_hint_x: 0.2
         ScrollView:
+            do_scroll_y: True
             Label:
                 id: output_label
                 text: "Output text"
+                size_hint_y: None
+                size: self.texture_size
 
 
 RootLayout:
