@@ -1,4 +1,4 @@
-import pickle, json, time, re
+import pickle, json, time, re, uuid
 from difflib import SequenceMatcher
 from threading import Thread, main_thread, Event
 from queue import Queue
@@ -25,11 +25,24 @@ from kivy.uix.tabbedpanel import TabbedPanel, TabbedPanelItem
 class RootLayout(TabbedPanel): # Constructs a UI element based on the kivy BoxLayout class 
     def __init__(self, **kwargs):
         super(RootLayout, self).__init__(**kwargs) # Calls the superconstructor 
-        
+    
+    def removeTab(self, tab_id):
+        app: SR_GUIApp = App.get_running_app()
+        tab = None
+        for tab in self.tab_list:
+            if tab.tab_id == tab_id:
+                tab = tab
+                break
+        if tab:
+            app.tabs.remove(tab_id)
+            # self.switch_to(self.default_tab) # Ignore if you want to temporarily keep inputs
+            self.remove_widget(tab)
 
 class CBoxLayout(BoxLayout):
-    def __init__(self, **kwargs):
+    def __init__(self, tab_id = 1, **kwargs):
         super().__init__(**kwargs)
+        self.tab_id = tab_id
+        
  
     def copyLabel(self):
         Clipboard.copy(self.ids.output_label.text)
@@ -71,10 +84,10 @@ class CBoxLayout(BoxLayout):
         output_label.text = output_text
 
     def dupeTab(self):
-        app = App.get_running_app()
-        app.tab_counter +=1
-        new_tab = CTabbedPanelItem(text=F"Tab {app.tab_counter}")
-        new_content = CBoxLayout()
+        app: SR_GUIApp = App.get_running_app()
+        new_tab_id = app.getNewTabId() # This variable will be assigned to both the panel container and the child box to bind the two 
+        new_tab = CTabbedPanelItem(text=F"Tab {new_tab_id}", tab_id=new_tab_id)
+        new_content = CBoxLayout(tab_id=new_tab_id)
         
         # Copy contents
         new_content.ids.output_label.text = self.ids.output_label.text
@@ -88,22 +101,16 @@ class CBoxLayout(BoxLayout):
         app.root.add_widget(new_tab)
         
     def removeTab(self):
-        parent_tab: CTabbedPanelItem = self.parent
-        self.tab_list
-        
-class CTabbedPanelItem(TabbedPanelItem):
-    def removeTab(self):
         app = App.get_running_app()
         root_layout: RootLayout = app.root
-        tab = None
-        for i in self.tab_list:
-            if i.text == self.text:
-                tab = i
-                break
-        if tab:
-            app.tab_counter -= 1
-            self.switch_to(self.default_tab)
-            self.remove_widget(tab)
+        root_layout.removeTab(self.tab_id)
+
+        
+class CTabbedPanelItem(TabbedPanelItem):
+    def __init__(self, tab_id = 1, **kwargs):
+        super().__init__(**kwargs)
+        self.tab_id = tab_id
+    pass
 
 class CPopup(Popup):
     pass
@@ -118,7 +125,6 @@ class CScrollView(ScrollView):
     pass
 
 
-
 class SR_GUIApp(App): 
     """
     This class inherits the App class from kivy
@@ -128,11 +134,19 @@ class SR_GUIApp(App):
     """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.tab_counter = 1
+        self.tabs = [1] # Initiate tab containing 1 tab id
         self.finished_check = Event() # Cross-thread event to indicate whether or not drug checking has finished
         self.reports_queue = Queue() # Queue for nodes to be added 
     
-    
+    def getNewTabId(self) -> int:
+        new_tab_id = 1
+        while True: # Increment new_tab_id starting from 1 until unoccupied id found
+            if new_tab_id in self.tabs:
+                new_tab_id += 1
+                continue
+            else:
+                self.tabs.append(new_tab_id) # Register new tab id
+                return new_tab_id
     
 
         
