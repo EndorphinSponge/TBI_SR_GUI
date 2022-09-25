@@ -23,36 +23,69 @@
         size_hint_x: None
         width: self.minimum_width
 
+<CBoxLayout>:
+    orientation: "horizontal"
+    BoxLayout:
+        orientation: "vertical"
+        size_hint_x: 0.35
+        TextInput:
+            id: factors
+            write_tab: False
+            hint_text: "Factors"
+            on_text: root.genOutput()
+        TextInput:
+            id: f_mod
+            write_tab: False
+            size_hint_y: 0.2
+            hint_text: "Factor modifiers, ';' delimited"
+            on_text: root.genOutput()
+        TextInput:
+            id: outcomes
+            write_tab: False
+            size_hint_y: 0.4
+            hint_text: "Outcomes"
+            on_text: root.genOutput()
+        TextInput:
+            id: o_mod
+            write_tab: False
+            size_hint_y: 0.2
+            hint_text: "Outcome modifiers, ';' delimited"
+            on_text: root.genOutput()
+        TextInput:
+            id: analyses
+            write_tab: False
+            size_hint_y: 0.2
+            hint_text: "Analyses"
+            on_text: root.genOutput()
+    BoxLayout:
+        orientation: "vertical"
+        BoxLayout:
+            orientation: "horizontal"
+            size_hint_y: 0.1
+            Button:
+                text: "Copy label"
+                on_press: root.copyLabel() # Root always refers to base widge/template from current context
+            Button:
+                text: "Duplicate tab"
+                on_press: root.dupeTab()
+            Button:
+                text: "Delete tab"
+                on_press: root.removeTab()
+                size_hint_x: 0.2
+        ScrollView:
+            Label:
+                id: output_label
+                text: "Output text"
+
+
 RootLayout:
     id: rootlayout
     # Can also directly access ids via <root element>.ids property
-    BoxLayout:
-        orientation: "horizontal"
-        BoxLayout:
-            orientation: "vertical"
-            size_hint_x: 0.3
-            CTextInput:
-                id: factors
-                hint_text: "Factors"
-            CTextInput:
-                id: outcomes
-                hint_text: "Outcomes"
-            CTextInput:
-                id: analyses
-                size_hint_y: 0.2
-                hint_text: "Analyses"
-        BoxLayout:
-            orientation: "vertical"
-            BoxLayout:
-                orientation: "horizontal"
-                size_hint_y: 0.1
-                Button:
-                    text: "Copy label"
-                    on_press: app.copyLabel()
-            ScrollView:
-                Label:
-                    id: output_label
-                    text: "Output text"
+    do_default_tab: False # Remove default tab
+
+    CTabbedPanelItem:
+        text: "Tab 1"
+        CBoxLayout:
         # BoxLayout:
         #     orientation: "horizontal"
         #     size_hint_y: None # Set size_hint to none to manual set height
